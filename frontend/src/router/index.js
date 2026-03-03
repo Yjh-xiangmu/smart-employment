@@ -40,7 +40,9 @@ const routes = [
         path: '/admin',
         component: () => import('@/layout/admin/index.vue'),
         children: [
-            { path: 'dashboard', component: () => import('@/views/admin/Dashboard.vue') }
+            { path: 'dashboard', component: () => import('@/views/admin/Dashboard.vue') },
+            { path: 'forum', component: () => import('@/views/admin/Forum.vue') },
+            { path: 'news', component: () => import('@/views/admin/News.vue') },
             // 后续管理员的 企业审核、新闻发布 都在这里加
         ]
     }
