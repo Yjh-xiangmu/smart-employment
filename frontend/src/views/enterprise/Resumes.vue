@@ -46,30 +46,26 @@
           <template #default="scope">
             <el-tag v-if="scope.row.status === 0" type="warning">待处理</el-tag>
             <el-tag v-else-if="scope.row.status === 1" type="primary">已查看</el-tag>
-            <el-tag v-else-if="scope.row.status === 2" type="success">邀约面试</el-tag>
-            <el-tag v-else-if="scope.row.status === 3" type="danger">不合适</el-tag>
+            <el-tag v-else-if="scope.row.status === 2" type="warning" effect="dark">面试中</el-tag>
+            <el-tag v-else-if="scope.row.status === 3" type="info">已淘汰</el-tag>
+            <el-tag v-else-if="scope.row.status === 5" type="success" effect="dark">已录用</el-tag>
           </template>
         </el-table-column>
 
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="scope">
-            <el-button
-                v-if="scope.row.status === 0 || scope.row.status === 1"
-                size="small"
-                type="primary"
-                @click="handleStatusChange(scope.row, 2)">
-              邀约
-            </el-button>
-            <el-button
-                v-if="scope.row.status === 0 || scope.row.status === 1"
-                size="small"
-                type="danger"
-                plain
-                @click="handleStatusChange(scope.row, 3)">
-              淘汰
-            </el-button>
-            <span v-if="scope.row.status === 2" style="color: #67c23a; font-size: 13px;">已发邀约</span>
-            <span v-if="scope.row.status === 3" style="color: #f56c6c; font-size: 13px;">已淘汰</span>
+            <template v-if="scope.row.status === 0 || scope.row.status === 1">
+              <el-button size="small" type="primary" @click="handleStatusChange(scope.row, 2)">邀约</el-button>
+              <el-button size="small" type="danger" plain @click="handleStatusChange(scope.row, 3)">淘汰</el-button>
+            </template>
+
+            <template v-if="scope.row.status === 2">
+              <el-button size="small" type="success" @click="handleStatusChange(scope.row, 5)">录用</el-button>
+              <el-button size="small" type="danger" plain @click="handleStatusChange(scope.row, 3)">淘汰</el-button>
+            </template>
+
+            <span v-if="scope.row.status === 3" style="color: #909399; font-size: 13px;">流程结束 (淘汰)</span>
+            <span v-if="scope.row.status === 5" style="color: #67c23a; font-size: 13px; font-weight: bold;">已发Offer</span>
           </template>
         </el-table-column>
 
@@ -109,35 +105,29 @@ const fetchDeliveries = () => {
   })
 }
 
-// 预览/下载学生的附件简历
 const previewResume = (row) => {
   if (!row.student_id) return
-
-  // 如果还是“待处理”状态，点击查看时自动帮HR变更为“已查看”
   if (row.status === 0) {
     request.post('/enterprise/delivery/changeStatus', { id: row.delivery_id, status: 1 }).then(() => {
-      fetchDeliveries() // 刷新列表状态
+      fetchDeliveries()
     })
   }
-
-  // 复用之前写好的公共下载接口
   const fileUrl = `/api/student/profile/downloadResume/${row.student_id}`
   window.open(fileUrl, '_blank')
 }
 
-// 更改状态 (邀约/淘汰)
 const handleStatusChange = (row, targetStatus) => {
-  const actionText = targetStatus === 2 ? '邀约面试' : '淘汰'
-  const typeText = targetStatus === 2 ? 'success' : 'warning'
+  let actionText = ''
+  let typeText = ''
+
+  if (targetStatus === 2) { actionText = '邀约面试'; typeText = 'primary' }
+  else if (targetStatus === 3) { actionText = '淘汰该候选人'; typeText = 'danger' }
+  else if (targetStatus === 5) { actionText = '发放Offer并录用'; typeText = 'success' }
 
   ElMessageBox.confirm(
       `确定要对该候选人进行【${actionText}】操作吗？`,
       '处理确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: typeText,
-      }
+      { confirmButtonText: '确定', cancelButtonText: '取消', type: typeText }
   ).then(() => {
     request.post('/enterprise/delivery/changeStatus', { id: row.delivery_id, status: targetStatus }).then(res => {
       ElMessage.success(res.message)

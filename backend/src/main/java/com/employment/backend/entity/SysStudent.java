@@ -14,5 +14,6 @@ public class SysStudent {
     private String studentNo;
     private String password;
     private String name;
+    private Integer status;
     private LocalDateTime createTime;
 }

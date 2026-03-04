@@ -21,4 +21,11 @@ public class SysEnterprise {
 
     private Integer status; // 0待审, 1通过, 2驳回
     private LocalDateTime createTime;
+    // --- 新增字段 ---
+    private String address;        // 企业地址
+    private String industry;       // 所属行业
+    private String scale;          // 企业规模
+    private String contactPerson;  // 联系人
+    private String contactPhone;   // 联系电话
+    private String description;    // 企业简介
 }

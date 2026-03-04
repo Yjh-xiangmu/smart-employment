@@ -34,9 +34,10 @@
           <template #default="scope">
             <el-tag v-if="scope.row.status === 0" type="warning">待处理</el-tag>
             <el-tag v-else-if="scope.row.status === 1" type="primary">已查看</el-tag>
-            <el-tag v-else-if="scope.row.status === 2" type="success">邀约面试</el-tag>
-            <el-tag v-else-if="scope.row.status === 3" type="danger">暂不合适</el-tag>
-            <el-tag v-else-if="scope.row.status === 4" type="info">已取消</el-tag>
+            <el-tag v-else-if="scope.row.status === 2" type="warning" effect="dark">邀约面试</el-tag>
+            <el-tag v-else-if="scope.row.status === 3" type="info">暂不合适</el-tag>
+            <el-tag v-else-if="scope.row.status === 4" type="info" plain>已取消</el-tag>
+            <el-tag v-else-if="scope.row.status === 5" type="success" effect="dark">已录用/Offer</el-tag>
           </template>
         </el-table-column>
 
@@ -82,7 +83,6 @@ onMounted(() => {
   }
 })
 
-// 拉取我的投递记录
 const fetchDeliveries = () => {
   if (!studentId.value) return
   loading.value = true
@@ -93,20 +93,15 @@ const fetchDeliveries = () => {
   })
 }
 
-// 取消投递
 const handleCancel = (row) => {
   ElMessageBox.confirm(
       `确定要取消投递【${row.enterprise_name}】的【${row.job_name}】岗位吗？`,
       '取消确认',
-      {
-        confirmButtonText: '确定取消',
-        cancelButtonText: '暂不取消',
-        type: 'warning',
-      }
+      { confirmButtonText: '确定取消', cancelButtonText: '暂不取消', type: 'warning' }
   ).then(() => {
     request.post(`/student/delivery/cancel/${row.delivery_id}`).then(res => {
       ElMessage.success(res.message)
-      fetchDeliveries() // 刷新列表
+      fetchDeliveries()
     })
   }).catch(() => {})
 }

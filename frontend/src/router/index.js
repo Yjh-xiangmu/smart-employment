@@ -32,6 +32,9 @@ const routes = [
             { path: 'dashboard', component: () => import('@/views/enterprise/Dashboard.vue') },
             { path: 'jobs', component: () => import('@/views/enterprise/Jobs.vue') },
             { path: 'resumes', component: () => import('@/views/enterprise/Resumes.vue') },
+            { path: 'profile', component: () => import('@/views/enterprise/Profile.vue') },
+            { path: 'promotion', component: () => import('@/views/enterprise/Promotion.vue') },
+            { path: 'messages', component: () => import('@/views/enterprise/Messages.vue') }
             // 后续企业的 职位发布、简历管理 都在这里加
         ]
     },
@@ -43,6 +46,10 @@ const routes = [
             { path: 'dashboard', component: () => import('@/views/admin/Dashboard.vue') },
             { path: 'forum', component: () => import('@/views/admin/Forum.vue') },
             { path: 'news', component: () => import('@/views/admin/News.vue') },
+            { path: 'students', component: () => import('@/views/admin/Student.vue') },
+            { path: 'jobs', component: () => import('@/views/admin/Job.vue') },
+            { path: 'resumes', component: () => import('@/views/admin/Resume.vue') },
+            { path: 'applications', component: () => import('@/views/admin/Delivery.vue') }
             // 后续管理员的 企业审核、新闻发布 都在这里加
         ]
     }

@@ -4,12 +4,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.employment.backend.common.Result;
 import com.employment.backend.entity.SysResumeDelivery;
 import com.employment.backend.entity.SysStudentProfile;
+import com.employment.backend.entity.SysJob;
+import com.employment.backend.entity.SysMessage;
 import com.employment.backend.mapper.SysResumeDeliveryMapper;
 import com.employment.backend.mapper.SysStudentProfileMapper;
+import com.employment.backend.mapper.SysJobMapper;
+import com.employment.backend.mapper.SysMessageMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
 @RestController
 @RequestMapping("/student/delivery")
 public class StudentDeliveryController {
@@ -20,7 +27,14 @@ public class StudentDeliveryController {
     @Autowired
     private SysStudentProfileMapper profileMapper;
 
-    // 投递简历接口
+    // 新增：引入职位和消息的 Mapper
+    @Autowired
+    private SysJobMapper sysJobMapper;
+
+    @Autowired
+    private SysMessageMapper sysMessageMapper;
+
+    // 1. 投递简历接口
     @PostMapping("/apply")
     public Result<?> applyJob(@RequestBody SysResumeDelivery delivery) {
         // 1. 拦截校验：检查学生是否已经在个人中心上传了附件简历
@@ -46,8 +60,24 @@ public class StudentDeliveryController {
         delivery.setStatus(0); // 默认 0 待处理
         deliveryMapper.insert(delivery);
 
+        // ================= 【核心新增】给企业发送系统消息 =================
+        // 先查出职位信息（为了拿到企业ID和职位名称）
+        SysJob job = sysJobMapper.selectById(delivery.getJobId());
+        if (job != null) {
+            SysMessage msgEntity = new SysMessage();
+            msgEntity.setReceiverId(job.getEnterpriseId()); // 接收者是该职位所属的企业
+            msgEntity.setReceiverType(2); // 2 代表接收者是企业
+            msgEntity.setTitle("新简历投递提醒");
+            msgEntity.setContent("系统提示：有一名学生刚刚投递了贵公司的【" + job.getJobName() + "】岗位，请前往简历库查看处理。");
+            msgEntity.setIsRead(0); // 默认未读
+            msgEntity.setCreateTime(LocalDateTime.now());
+            sysMessageMapper.insert(msgEntity);
+        }
+        // =================================================================
+
         return Result.success("投递成功！企业HR将尽快处理您的简历。", null);
     }
+
     // 2. 获取学生的投递记录列表
     @GetMapping("/list/{studentId}")
     public Result<?> getDeliveryList(@PathVariable Long studentId) {
@@ -70,6 +100,21 @@ public class StudentDeliveryController {
         // 将状态修改为 4:已取消
         delivery.setStatus(4);
         deliveryMapper.updateById(delivery);
+
+        // ================= 【核心新增】给企业发送系统消息 =================
+        SysJob job = sysJobMapper.selectById(delivery.getJobId());
+        if (job != null) {
+            SysMessage msgEntity = new SysMessage();
+            msgEntity.setReceiverId(job.getEnterpriseId());
+            msgEntity.setReceiverType(2); // 2 代表接收者是企业
+            msgEntity.setTitle("学生取消投递通知");
+            msgEntity.setContent("系统提示：有一名学生取消了对贵公司【" + job.getJobName() + "】岗位的投递申请。");
+            msgEntity.setIsRead(0);
+            msgEntity.setCreateTime(LocalDateTime.now());
+            sysMessageMapper.insert(msgEntity);
+        }
+        // =================================================================
+
         return Result.success("已成功取消投递！", null);
     }
 }

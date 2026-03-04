@@ -7,14 +7,13 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("sys_message")
-public class SysMessage {
+@TableName("sys_enterprise_promotion")
+public class SysEnterprisePromotion {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private Long receiverId;
+    private Long enterpriseId;
     private String title;
     private String content;
-    private Integer isRead; // 0未读, 1已读
+    private Integer viewCount;
     private LocalDateTime createTime;
-    private Integer receiverType; // 1:学生, 2:企业
 }

@@ -81,4 +81,47 @@ public class EnterpriseController {
         dbEnterprise.setLicenseImage(null);
         return Result.success("登录成功", dbEnterprise);
     }
+
+    // ================= 以下为新增的企业信息维护接口 =================
+
+    // 3. 获取企业信息接口
+    @GetMapping("/profile/{id}")
+    public Result<?> getProfile(@PathVariable("id") Long id) {
+        SysEnterprise enterprise = sysEnterpriseMapper.selectById(id);
+        if (enterprise != null) {
+            // 为了安全和网络传输速度，把密码和图片字节码置空
+            enterprise.setPassword(null);
+            enterprise.setLicenseImage(null);
+            return Result.success("获取成功", enterprise);
+        }
+        return Result.error("企业信息不存在！");
+    }
+
+    // 4. 更新企业信息接口
+    @PutMapping("/update")
+    public Result<?> updateProfile(@RequestBody SysEnterprise enterprise) {
+        if (enterprise.getId() == null) {
+            return Result.error("企业ID不能为空！");
+        }
+
+        // 构造一个新的实体类进行更新，防止前端恶意篡改密码、状态等敏感字段
+        SysEnterprise updateEntity = new SysEnterprise();
+        updateEntity.setId(enterprise.getId());
+        updateEntity.setEnterpriseName(enterprise.getEnterpriseName());
+        updateEntity.setLegalPerson(enterprise.getLegalPerson()); // 法人也可修改
+
+        // 注入新加的字段
+        updateEntity.setAddress(enterprise.getAddress());
+        updateEntity.setIndustry(enterprise.getIndustry());
+        updateEntity.setScale(enterprise.getScale());
+        updateEntity.setContactPerson(enterprise.getContactPerson());
+        updateEntity.setContactPhone(enterprise.getContactPhone());
+        updateEntity.setDescription(enterprise.getDescription());
+
+        int rows = sysEnterpriseMapper.updateById(updateEntity);
+        if (rows > 0) {
+            return Result.success("企业信息更新成功！", null);
+        }
+        return Result.error("更新失败，请重试！");
+    }
 }

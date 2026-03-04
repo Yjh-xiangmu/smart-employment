@@ -12,18 +12,17 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/student/message")
-public class MessageController {
+@RequestMapping("/enterprise/message")
+public class EnterpriseMessageController {
 
     @Autowired
     private SysMessageMapper messageMapper;
 
-    // 1. 获取消息列表和未读数量
-    @GetMapping("/list/{studentId}")
-    public Result<?> getMessageList(@PathVariable Long studentId) {
+    @GetMapping("/list/{enterpriseId}")
+    public Result<?> getMessageList(@PathVariable Long enterpriseId) {
         QueryWrapper<SysMessage> query = new QueryWrapper<>();
-        // 【修改点】：限定只能查询学生的(type=1)
-        query.eq("receiver_id", studentId).eq("receiver_type", 1).orderByDesc("create_time");
+        // 限定查询企业的消息(type=2)
+        query.eq("receiver_id", enterpriseId).eq("receiver_type", 2).orderByDesc("create_time");
         List<SysMessage> list = messageMapper.selectList(query);
 
         long unreadCount = list.stream().filter(m -> m.getIsRead() == 0).count();
@@ -34,7 +33,6 @@ public class MessageController {
         return Result.success(data);
     }
 
-    // 2. 将某条消息标记为已读
     @PostMapping("/read/{messageId}")
     public Result<?> readMessage(@PathVariable Long messageId) {
         SysMessage msg = new SysMessage();
@@ -44,14 +42,12 @@ public class MessageController {
         return Result.success("已读成功", null);
     }
 
-    // 3. 一键已读
-    @PostMapping("/readAll/{studentId}")
-    public Result<?> readAll(@PathVariable Long studentId) {
+    @PostMapping("/readAll/{enterpriseId}")
+    public Result<?> readAll(@PathVariable Long enterpriseId) {
         SysMessage msg = new SysMessage();
         msg.setIsRead(1);
         QueryWrapper<SysMessage> query = new QueryWrapper<>();
-        // 【修改点】：限定只能一键已读学生的(type=1)
-        query.eq("receiver_id", studentId).eq("receiver_type", 1).eq("is_read", 0);
+        query.eq("receiver_id", enterpriseId).eq("receiver_type", 2).eq("is_read", 0);
         messageMapper.update(msg, query);
         return Result.success("全部已读成功", null);
     }
